@@ -43,16 +43,23 @@ public class SimpleBufferTriggerBuilder<E, C> {
 
     private boolean maxBufferCountWasSet = false;
 
+    // 触发策略，决定执行计算的时机，必需
     TriggerStrategy triggerStrategy;
+    // 执行线程池
     ScheduledExecutorService scheduledExecutorService;
     boolean usingInnerExecutor;
+    // 传给 SimpleBufferTrigger，必需
     Supplier<C> bufferFactory;
+    // 传给 SimpleBufferTrigger，必需
     ToIntBiFunction<C, E> queueAdder;
+    // 传给 SimpleBufferTrigger，必需
     ThrowableConsumer<C, Throwable> consumer;
     BiConsumer<Throwable, C> exceptionHandler;
     LongSupplier maxBufferCount = () -> -1;
     RejectHandler<E> rejectHandler;
+    // 执行线程池里的线程的名字
     String name;
+    // 是否不使用锁，决定 SimplerBufferTrigger 的 readLock 和 writerLock 是否使用
     boolean disableSwitchLock;
 
     /**

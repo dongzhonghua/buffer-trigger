@@ -43,15 +43,25 @@ public class SimpleBufferTrigger<E, C> implements BufferTrigger<E> {
 
     private static final long DEFAULT_NEXT_TRIGGER_PERIOD = TimeUnit.SECONDS.toMillis(1);
 
-    private final AtomicLong counter = new AtomicLong();
+    private final AtomicLong counter = new AtomicLong(); // 计数器
+    // 执行数据计算操作的对象，会在 SimpleBufferTrigger 里的 doConsume方法中调用 ，需要由用户传入
     private final ThrowableConsumer<C, Throwable> consumer;
+    // 队列递增器，它的作用是，enqueue 的时候，会调用 queueAdder.applyAsInt
+    // 返回值大于 0 的时候，counter 才会增加，通常会在 queueAdder 里做聚合，把新加入的数据聚合到已存在的数据里
     private final ToIntBiFunction<C, E> queueAdder;
+    // 创建 buffer 的对象，每次计算的时候都会创建一个新的 buffer 来容纳数据
     private final Supplier<C> bufferFactory;
+    // SimpleBufferTrigger#doConsume 出错的时候的处理
     private final BiConsumer<Throwable, C> exceptionHandler;
+    // 用来接收数据的容器，AtomicReference 的泛型类型通常是 ConcurrentHashMap
     private final AtomicReference<C> buffer = new AtomicReference<>();
+    // 容器中可缓存的最大的数据量，通常不用设置，默认为 -1，表示不设置容器大小
     private final LongSupplier maxBufferCount;
+    // enqueue 的时候会检查是否超过 maxBufferCount，如果超过，就拒绝加入容器，通常不用设置
     private final RejectHandler<E> rejectHandler;
+    //读锁，会在 enqueue 的时候使用
     private final ReadLock readLock;
+    // 写锁，会在 doConsume 的时候使用
     private final WriteLock writeLock;
     private final Condition writeCondition;
     private final Runnable shutdownExecutor;
